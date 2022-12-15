@@ -1,0 +1,11 @@
+{
+  "extension" : {
+    "identifier" : "panic.JavaScript",
+    "name" : "JavaScript"
+  },
+  "extensionTemplate" : "denoDebug",
+  "extensionValues" : {
+    "request" : "launch",
+    "scriptPath" : "src\/test.ts"
+  }
+}
