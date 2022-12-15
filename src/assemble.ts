@@ -31,7 +31,7 @@ interface FunctionToAssemble<T> {
   dependencies?: Injectable[];
 }
 
-type ToAssemble<T> =
+export type ToAssemble<T> =
   | ClassToAssemble<T>
   | FunctionToAssemble<T>
   | ValueToAssemble<T>;
