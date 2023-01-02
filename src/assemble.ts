@@ -57,31 +57,36 @@ export function assemble<T>(toAssemble: ToAssemble<T>) {
   }
 }
 
-export function get(token: Injectable) {
+export function get<T>(token: Injectable): T {
   const injectable = registry.find((item) => {
     return item.type === token;
   });
 
-  if (injectable && "class" in injectable) {
+  const errMsg =
+    `Provided token: "${token.toString()}" is not registered for dependency injection`;
+
+  if (!injectable) {
+    throw new Error(errMsg);
+  }
+
+  if ("class" in injectable) {
     const deps: unknown[] = injectable.dependencies?.map((toInject) =>
       get(toInject)
     ) ?? [];
-    return injectable.value ?? new injectable.class(...deps);
+    return <T> new injectable.class(...deps);
   }
 
-  if (injectable && "function" in injectable) {
+  if ("function" in injectable) {
     const deps: unknown[] = injectable.dependencies?.map((toInject) => {
       return get(toInject);
     }) ?? [];
 
-    return injectable.value ?? injectable.function(...deps);
+    return <T> injectable.function(...deps);
   }
 
-  if (injectable && "token" in injectable) {
-    return injectable.value;
+  if ("token" in injectable) {
+    return <T> injectable.value;
   }
 
-  throw new Error(
-    `Provided token: "${token.toString()}" is not registered for dependency injection`,
-  );
+  throw new Error(errMsg);
 }

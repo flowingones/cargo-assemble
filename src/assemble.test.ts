@@ -20,7 +20,7 @@ Deno.test("should return valid class instance", () => {
     class: Hello,
   });
 
-  assertEquals((<Hello> get(Hello)).say(), "world");
+  assertEquals((get<Hello>(Hello)).say(), "world");
 });
 
 Deno.test("should return valid class instance with deps", () => {
@@ -38,7 +38,7 @@ Deno.test("should return valid class instance with deps", () => {
     dependencies: ["value"],
   });
 
-  assertEquals((<Hello2> get(Hello2)).say(), "univers");
+  assertEquals((get<Hello2>(Hello2)).say(), "univers");
 });
 
 Deno.test("should return valid class instance with nested deps", () => {
@@ -68,7 +68,7 @@ Deno.test("should return valid class instance with nested deps", () => {
     dependencies: [HelloService],
   });
 
-  assertEquals((<Hello3> get(Hello3)).say(), "galaxy");
+  assertEquals((get<Hello3>(Hello3)).say(), "galaxy");
 });
 
 Deno.test("should return function result based on deps", () => {
@@ -83,5 +83,5 @@ Deno.test("should return function result based on deps", () => {
 
   assemble({ function: say, dependencies: ["hey"] });
 
-  assertEquals(get(say), "ho");
+  assertEquals(get<string>(say), "ho");
 });
