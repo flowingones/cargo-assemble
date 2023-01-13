@@ -1,5 +1,5 @@
 import { assemble, get } from "./mod.ts";
-import { assertEquals } from "@std/testing/asserts.ts";
+import { assertEquals } from "std/testing/asserts.ts";
 
 Deno.test(`should return a expected value`, () => {
   assemble({
