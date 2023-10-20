@@ -1,5 +1,9 @@
 import { assemble, get } from "./mod.ts";
-import { assertEquals } from "std/testing/asserts.ts";
+import {
+  assertEquals,
+  assertNotStrictEquals,
+  assertStrictEquals,
+} from "std/testing/asserts.ts";
 
 Deno.test(`should return a expected value`, () => {
   assemble({
@@ -20,7 +24,46 @@ Deno.test("should return valid class instance", () => {
     class: Hello,
   });
 
-  assertEquals((get<Hello>(Hello)).say(), "world");
+  assertEquals((get(Hello)).say(), "world");
+});
+
+Deno.test("should return singleton class instance", () => {
+  class Hello {
+    say() {
+      return "world";
+    }
+  }
+  assemble({
+    class: Hello,
+  });
+
+  const a = get(Hello);
+  const b = get(Hello);
+
+  assertStrictEquals(a, b);
+
+  assertEquals(a.say(), "world");
+  assertEquals(b.say(), "world");
+});
+
+Deno.test("should return own class instance", () => {
+  class Hello {
+    say() {
+      return "world";
+    }
+  }
+  assemble({
+    class: Hello,
+    isSingleton: false,
+  });
+
+  const a = get(Hello);
+  const b = get(Hello);
+
+  assertNotStrictEquals(a, b);
+
+  assertEquals(a.say(), "world");
+  assertEquals(b.say(), "world");
 });
 
 Deno.test("should return valid class instance with deps", () => {
@@ -35,10 +78,11 @@ Deno.test("should return valid class instance with deps", () => {
   }
   assemble({
     class: Hello2,
+    isSingleton: true,
     dependencies: ["value"],
   });
 
-  assertEquals((get<Hello2>(Hello2)).say(), "univers");
+  assertEquals((get(Hello2)).say(), "univers");
 });
 
 Deno.test("should return valid class instance with nested deps", () => {
@@ -68,7 +112,7 @@ Deno.test("should return valid class instance with nested deps", () => {
     dependencies: [HelloService],
   });
 
-  assertEquals((get<Hello3>(Hello3)).say(), "galaxy");
+  assertEquals((get(Hello3)).say(), "galaxy");
 });
 
 Deno.test("should return function result based on deps", () => {
@@ -83,5 +127,5 @@ Deno.test("should return function result based on deps", () => {
 
   assemble({ function: say, dependencies: ["hey"] });
 
-  assertEquals(get<string>(say), "ho");
+  assertEquals(get(say), "ho");
 });

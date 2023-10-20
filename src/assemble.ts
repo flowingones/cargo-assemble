@@ -1,5 +1,7 @@
 const registry: ItemToAssemble[] = [];
 
+const items = new Map<Injectable, unknown>();
+
 type ItemToAssemble = ToAssemble<unknown> & {
   type: Injectable;
   value?: unknown;
@@ -18,6 +20,7 @@ type Injectable =
 
 interface ClassToAssemble<T> {
   class: Newable<T>;
+  isSingleton?: boolean;
   dependencies?: Injectable[];
 }
 
@@ -57,7 +60,14 @@ export function assemble<T>(toAssemble: ToAssemble<T>) {
   }
 }
 
-export function get<T>(token: Injectable): T {
+type ReturnValue<A extends Injectable, T> = A extends string
+  ? ValueToAssemble<T>["value"]
+  : (A extends (...args: any) => any ? ReturnType<A>
+    : (A extends new (...args: any[]) => infer R ? R : never));
+
+export function get<T, A extends Injectable = string>(
+  token: A,
+): ReturnValue<A, T> {
   const injectable = registry.find((item) => {
     return item.type === token;
   });
@@ -70,10 +80,19 @@ export function get<T>(token: Injectable): T {
   }
 
   if ("class" in injectable) {
+    if (injectable.isSingleton !== false) {
+      const item = items.get(injectable.type);
+      if (item) return <ReturnValue<A, T>> item;
+    }
     const deps: unknown[] = injectable.dependencies?.map((toInject) =>
       get(toInject)
     ) ?? [];
-    return <T> new injectable.class(...deps);
+
+    const item = <ReturnValue<A, T>> new injectable.class(...deps);
+
+    if (injectable.isSingleton !== false) items.set(injectable.type, item);
+
+    return item;
   }
 
   if ("function" in injectable) {
@@ -81,11 +100,11 @@ export function get<T>(token: Injectable): T {
       return get(toInject);
     }) ?? [];
 
-    return <T> injectable.function(...deps);
+    return <ReturnValue<A, T>> injectable.function(...deps);
   }
 
   if ("token" in injectable) {
-    return <T> injectable.value;
+    return <ReturnValue<A, T>> injectable.value;
   }
 
   throw new Error(errMsg);
